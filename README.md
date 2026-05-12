@@ -1,6 +1,6 @@
 # EsCube
 
-一个现代化的 Elasticsearch 客户端，具备 AI 驱动的查询辅助功能，基于 Electron、React 和 TypeScript 构建。
+一个 Elasticsearch 客户端，具备 AI 驱动的查询辅助功能，基于 Electron、React 和 TypeScript 构建。
 
 ![EsCube Screenshot](./assets/screenshot.png)
 
@@ -67,12 +67,6 @@ pnpm package:mac   # macOS
 pnpm package:win   # Windows
 pnpm package:linux # Linux
 ```
-
-## 🔐 安全性
-
-- **凭证加密**: 所有的 Elasticsearch 登录凭证通过 `safeStorage` 进行硬件级别的加密存储。
-- **查询确认**: 涉及 `DELETE` 或 `UPDATE` 等破坏性操作时，系统会强制弹出确认对话框。
-- **AI 隔离**: AI 生成的代码仅作为输入建议插入编辑器，除非用户手动触发，否则不会直接执行。
 
 ## 📄 许可证
 
