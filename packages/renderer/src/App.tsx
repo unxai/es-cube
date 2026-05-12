@@ -41,7 +41,6 @@ import {
   DialogTitle,
 } from "./components/ui/dialog";
 import { detectDangerousOperations } from "./lib/dslDetector";
-import { AIPromptService } from "./services/AIPromptService";
 import { AIProviderSelector } from "./components/settings/AIProviderSelector";
 import logoSrc from "./assets/logo.svg";
 
@@ -279,47 +278,43 @@ function App() {
     setIsGenerating(true);
 
     try {
-      let indexMapping = null;
+      let indexMapping = null
 
       if (selectedIndex) {
         try {
           const mappingResult = await window.api.es.getMapping(
             selectedInstanceId,
             selectedIndex,
-          );
+          )
           if (mappingResult) {
-            indexMapping = mappingResult;
+            indexMapping = mappingResult
           }
         } catch (error) {
-          console.warn("Failed to fetch index mapping:", error);
+          console.warn('Failed to fetch index mapping:', error)
         }
       }
 
-      const aiService = AIPromptService.getInstance();
-      const result = await aiService.generateDSL(
-        {
-          naturalLanguageQuery: aiQuery,
-          indexMapping,
-          indexName: selectedIndex || undefined,
-        },
-        aiConfig,
-      );
+      const result = await window.api.ai.generateDSL({
+        naturalLanguageQuery: aiQuery,
+        indexMapping,
+        indexName: selectedIndex || undefined,
+      })
 
       if (result.success && result.dsl) {
-        setQuery(result.dsl);
-        setShowAIInput(false);
-        setAIQuery("");
-        toast.success(t("ai.success") || "DSL generated successfully!");
+        setQuery(result.dsl)
+        setShowAIInput(false)
+        setAIQuery('')
+        toast.success(t('ai.success') || 'DSL generated successfully!')
       } else {
-        toast.error(`AI Error: ${result.error}`);
+        toast.error(`AI Error: ${result.error}`)
       }
     } catch (error) {
       toast.error(
-        `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+        `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     } finally {
-      setIsExecuting(false);
-      setIsGenerating(false);
+      setIsExecuting(false)
+      setIsGenerating(false)
     }
   };
 

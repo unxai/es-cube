@@ -6,11 +6,14 @@ import { ESConnectionManager } from './services/ESConnectionManager'
 import { LogService } from './services/LogService'
 import { autoUpdater } from 'electron-updater'
 import { getMenuTranslations } from '@shared/menu'
+import { AIService } from './services/AIService'
+import crypto from 'crypto'
 
 let mainWindow: BrowserWindow | null = null
 let storageService: StorageService
 let esConnectionManager: ESConnectionManager
 let logService: LogService
+let aiService: AIService
 let developerMode = false
 let autoUpdateSettings = {
   enabled: true,
@@ -229,6 +232,10 @@ const setupIpcHandlers = () => {
     return developerMode
   })
 
+  ipcMain.handle('ai:generate-dsl', async (_, request) => {
+    return aiService.generateDSL(request)
+  })
+
 
 
   ipcMain.handle('es:detect-version', async (_, instanceId: string) => {
@@ -291,6 +298,23 @@ const setupIpcHandlers = () => {
   ipcMain.handle('updater:install', () => {
     autoUpdater.quitAndInstall()
   })
+
+  ipcMain.handle('updater:validate', async (_, filePath: string, signature: string) => {
+    try {
+      const settings = await storageService.getSettings()
+      if (!settings.autoUpdate?.verifyRelease || !settings.autoUpdate?.publicKey) {
+        return true // Skip validation if disabled or no key
+      }
+
+      const fileBuffer = fs.readFileSync(filePath)
+      const verifier = crypto.createVerify('SHA256')
+      verifier.update(fileBuffer)
+      return verifier.verify(settings.autoUpdate.publicKey, signature, 'base64')
+    } catch (error) {
+      logService.error('Update validation failed', error as Error)
+      return false
+    }
+  })
 }
 
 const createWindow = () => {
@@ -322,6 +346,7 @@ app.whenReady().then(async () => {
 
   storageService = StorageService.getInstance()
   esConnectionManager = ESConnectionManager.getInstance()
+  aiService = AIService.getInstance()
   await storageService.init()
 
   await logService.loadConfigFromStorage()

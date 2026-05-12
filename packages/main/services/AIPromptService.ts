@@ -1,5 +1,5 @@
-import type { ESIndexMapping } from '../../../main/services/ESConnectionManager'
-import type { AIConfig } from '../store/useAppStore'
+import type { ESIndexMapping } from './ESConnectionManager'
+import type { AIConfig } from './StorageService'
 
 export interface AIRequest {
   naturalLanguageQuery: string
@@ -136,7 +136,7 @@ export class AIPromptService {
           }),
         })
         if (response.ok) {
-          const data = await response.json()
+          const data = await response.json() as any
           aiMessage = data.content?.[0]?.text
         }
       } else if (config.provider === 'gemini') {
@@ -155,7 +155,7 @@ export class AIPromptService {
           }),
         })
         if (response.ok) {
-          const data = await response.json()
+          const data = await response.json() as any
           aiMessage = data.candidates?.[0]?.content?.parts?.[0]?.text
         }
       } else {
@@ -180,13 +180,13 @@ export class AIPromptService {
           }),
         })
         if (response.ok) {
-          const data = await response.json()
+          const data = await response.json() as any
           aiMessage = data.choices?.[0]?.message?.content
         }
       }
 
       if (!response || !response.ok) {
-        const errorData = response ? await response.json().catch(() => ({})) : {}
+        const errorData = response ? await response.json().catch(() => ({})) as any : {}
         return {
           success: false,
           error: `AI API Error: ${response?.status} - ${errorData.error?.message || errorData.message || 'Unknown error'}`,

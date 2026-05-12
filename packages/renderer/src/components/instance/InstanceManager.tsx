@@ -10,6 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '../ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select'
 
 export function InstanceManager({ onClose }: { onClose: () => void }) {
   const { addInstance } = useConnectionStore()
@@ -17,8 +24,10 @@ export function InstanceManager({ onClose }: { onClose: () => void }) {
   const [formData, setFormData] = useState({
     name: '',
     url: '',
+    authType: 'basic' as 'none' | 'basic' | 'bearer' | 'apiKey',
     username: '',
     password: '',
+    apiKey: '',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -73,25 +82,60 @@ export function InstanceManager({ onClose }: { onClose: () => void }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="username">{t('app.username')}</Label>
-            <Input
-              id="username"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              placeholder="e.g. elastic"
-            />
+            <Label htmlFor="authType">{t('app.authType') || '认证方式'}</Label>
+            <Select 
+              value={formData.authType} 
+              onValueChange={(val: any) => setFormData({ ...formData, authType: val })}
+            >
+              <SelectTrigger id="authType">
+                <SelectValue placeholder="选择认证方式" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">{t('app.authNone') || '无认证'}</SelectItem>
+                <SelectItem value="basic">{t('app.authBasic') || 'Basic 认证'}</SelectItem>
+                <SelectItem value="bearer">{t('app.authBearer') || 'Bearer Token'}</SelectItem>
+                <SelectItem value="apiKey">{t('app.authApiKey') || 'API Key'}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">{t('app.password')}</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder="•••••••••"
-            />
-          </div>
+          {formData.authType === 'basic' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="username">{t('app.username')}</Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="e.g. elastic"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">{t('app.password')}</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="•••••••••"
+                />
+              </div>
+            </>
+          )}
+
+          {(formData.authType === 'apiKey' || formData.authType === 'bearer') && (
+            <div className="space-y-2">
+              <Label htmlFor="apiKey">{t('app.apiKey')}</Label>
+              <Input
+                id="apiKey"
+                type="password"
+                value={formData.apiKey}
+                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                placeholder="•••••••••"
+              />
+            </div>
+          )}
 
           {error && (
             <div className="px-4 py-3 bg-destructive/10 border border-destructive/20 rounded-md text-destructive text-sm">

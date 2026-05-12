@@ -74,7 +74,7 @@ export const useAppStore = create<AppState>()(
       init: async () => {
         if (get().isInitialized) return
         try {
-          const settings = await window.api.storage.getSettings()
+          const settings = await window.api?.storage.getSettings()
           if (settings) {
             set((state) => ({
               theme: settings.theme || state.theme,
@@ -101,26 +101,28 @@ export const useAppStore = create<AppState>()(
 
       setTheme: async (theme) => {
         set({ theme })
-        const root = document.documentElement
-        root.classList.remove('dark')
-
-        if (theme === 'dark') {
-          root.classList.add('dark')
-        } else if (theme === 'light') {
+        if (typeof document !== 'undefined') {
+          const root = document.documentElement
           root.classList.remove('dark')
-        } else {
-          const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-          if (isSystemDark) {
+
+          if (theme === 'dark') {
             root.classList.add('dark')
+          } else if (theme === 'light') {
+            root.classList.remove('dark')
+          } else if (typeof window !== 'undefined') {
+            const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+            if (isSystemDark) {
+              root.classList.add('dark')
+            }
           }
         }
-        await window.api.storage.updateSettings({ theme })
+        await window.api?.storage.updateSettings({ theme })
       },
 
       setLocale: async (locale) => {
         if (translations[locale]) {
           set({ locale })
-          await window.api.storage.updateSettings({ defaultLanguage: locale })
+          await window.api?.storage.updateSettings({ defaultLanguage: locale })
         }
       },
 
@@ -130,7 +132,7 @@ export const useAppStore = create<AppState>()(
           newAIConfig.providers = { ...get().aiConfig.providers, ...config.providers }
         }
         set({ aiConfig: newAIConfig })
-        await window.api.storage.updateSettings({ aiConfig: newAIConfig })
+        await window.api?.storage.updateSettings({ aiConfig: newAIConfig })
       },
 
       setLogConfig: async (config) => {
@@ -144,7 +146,7 @@ export const useAppStore = create<AppState>()(
 
       setDeveloperMode: async (enabled) => {
         set({ developerMode: enabled })
-        await window.api.storage.updateSettings({ developerMode: enabled })
+        await window.api?.storage.updateSettings({ developerMode: enabled })
       },
 
       addSearchHistory: (query) => {

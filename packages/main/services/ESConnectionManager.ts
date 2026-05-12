@@ -1,6 +1,21 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios'
 import { StorageService } from './StorageService'
 
+export interface ESInstance {
+  id: string
+  name: string
+  url: string
+  authType?: 'none' | 'basic' | 'bearer' | 'apiKey'
+  username?: string
+  password?: string
+  apiKey?: string
+  caCert?: string
+  version?: string
+  majorVersion?: number
+  createdAt: number
+  updatedAt: number
+}
+
 export interface ESVersionInfo {
   number: string
   major: number
@@ -51,8 +66,12 @@ export class ESConnectionManager {
     }
 
     try {
+      const auth = this.buildAuth(instance)
       const response = await axios.get(instance.url, {
-        auth: this.buildAuth(instance),
+        ...auth,
+        headers: {
+          ...(auth.headers || {}),
+        },
         timeout: 10000,
       })
 
@@ -150,18 +169,20 @@ export class ESConnectionManager {
     }
   }
 
-  private getAxiosInstance(instance: { url: string; username?: string; password?: string; apiKey?: string }): AxiosInstance {
-    const cacheKey = instance.url
+  private getAxiosInstance(instance: ESInstance): AxiosInstance {
+    const cacheKey = instance.id
     if (this.axiosInstances.has(cacheKey)) {
       return this.axiosInstances.get(cacheKey)!
     }
 
+    const auth = this.buildAuth(instance)
     const axiosInstance = axios.create({
       baseURL: instance.url,
-      auth: this.buildAuth(instance),
+      ...auth,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
+        ...(auth.headers || {}),
       },
     })
 
@@ -179,20 +200,48 @@ export class ESConnectionManager {
     return axiosInstance
   }
 
-  private buildAuth(instance: { username?: string; password?: string; apiKey?: string }) {
-    if (instance.apiKey) {
+  private buildAuth(instance: ESInstance) {
+    const headers: Record<string, string> = {}
+
+    if (instance.authType === 'apiKey' && instance.apiKey) {
+      headers['Authorization'] = `ApiKey ${instance.apiKey}`
+      return { headers }
+    }
+
+    if (instance.authType === 'bearer' && instance.apiKey) {
+      headers['Authorization'] = `Bearer ${instance.apiKey}`
+      return { headers }
+    }
+
+    if (instance.authType === 'basic' && instance.username && instance.password) {
       return {
-        username: instance.apiKey,
-        password: '',
+        auth: {
+          username: instance.username,
+          password: instance.password,
+        }
       }
     }
-    if (instance.username && instance.password) {
+
+    // Fallback for backward compatibility
+    if (instance.apiKey && !instance.authType) {
       return {
-        username: instance.username,
-        password: instance.password,
+        auth: {
+          username: instance.apiKey,
+          password: '',
+        }
       }
     }
-    return undefined
+
+    if (instance.username && instance.password && !instance.authType) {
+      return {
+        auth: {
+          username: instance.username,
+          password: instance.password,
+        }
+      }
+    }
+
+    return {}
   }
 
   private parseVersion(versionStr: string): ESVersionInfo {
@@ -229,7 +278,7 @@ export class ESConnectionManager {
     const storageService = StorageService.getInstance()
     storageService.getInstanceWithCredentials(instanceId).then((instance) => {
       if (instance) {
-        this.axiosInstances.delete(instance.url)
+        this.axiosInstances.delete(instance.id)
       }
     })
   }

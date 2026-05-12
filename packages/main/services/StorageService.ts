@@ -7,9 +7,11 @@ export interface ESInstance {
   id: string
   name: string
   url: string
+  authType?: 'none' | 'basic' | 'bearer' | 'apiKey'
   username?: string
   password?: string
   apiKey?: string
+  caCert?: string
   version?: string
   majorVersion?: number
   createdAt: number
@@ -40,6 +42,8 @@ export interface Settings {
     enabled: boolean
     autoDownload: boolean
     autoInstall: boolean
+    verifyRelease: boolean
+    publicKey?: string
   }
   aiConfig: AIConfig
 }
@@ -68,6 +72,7 @@ const defaultSettings: Settings = {
     enabled: true,
     autoDownload: false,
     autoInstall: true,
+    verifyRelease: true,
   },
   aiConfig: {
     provider: 'openai',
@@ -229,15 +234,15 @@ export class StorageService {
   public async getSettings(): Promise<Settings> {
     const settings = this.store.get('settings')
     if (settings.aiConfig?.providers) {
-      // Create a copy and decrypt keys for the renderer
-      const decryptedSettings = JSON.parse(JSON.stringify(settings))
-      Object.keys(decryptedSettings.aiConfig.providers).forEach(key => {
-        const provider = decryptedSettings.aiConfig.providers[key]
-        if (provider.apiKey && provider.apiKey.startsWith('ENCRYPTED:')) {
-          provider.apiKey = CryptoService.decryptString(provider.apiKey)
+      // Create a copy and CLEAR keys for the renderer
+      const sanitizedSettings = JSON.parse(JSON.stringify(settings))
+      Object.keys(sanitizedSettings.aiConfig.providers).forEach(key => {
+        const provider = sanitizedSettings.aiConfig.providers[key]
+        if (provider.apiKey) {
+          provider.apiKey = '******'
         }
       })
-      return decryptedSettings
+      return sanitizedSettings
     }
     return settings
   }
