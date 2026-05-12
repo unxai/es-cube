@@ -1,0 +1,31 @@
+appId: com.es-cube.app
+productName: EsCube
+copyright: Copyright © 2026 EsCube
+directories:
+  output: build
+  buildResources: resources
+files:
+  - dist/**/*
+  - node_modules/**/*
+  - package.json
+mac:
+  target:
+    - target: dmg
+      arch: x64
+    - target: dmg
+      arch: arm64
+  category: public.app-category.developer-tools
+  icon: resources/icon.png
+win:
+  target:
+    - nsis
+    - portable
+  artifactName: ${productName}-${version}-win-${arch}.${ext}
+linux:
+  target:
+    - AppImage
+  category: Development
+publish:
+  provider: github
+  owner: unxai
+  repo: es-cube

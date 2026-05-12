@@ -1,0 +1,15 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/main/tsconfig.json" },
+    { "path": "./packages/preload/tsconfig.json" },
+    { "path": "./packages/renderer/tsconfig.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["packages/renderer/src/*"]
+    }
+  }
+}

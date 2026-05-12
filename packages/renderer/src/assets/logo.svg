@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <g stroke="#024256" stroke-linecap="round" stroke-linejoin="round">
+    <!-- 立方体轮廓和内棱线 -->
+    <polygon points="100,20 169,60 169,140 100,180 31,140 31,60" stroke-width="2.5"/>
+    <line x1="100" y1="100" x2="100" y2="20" stroke-width="2.5"/>
+    <line x1="100" y1="100" x2="169" y2="140" stroke-width="2.5"/>
+    <line x1="100" y1="100" x2="31" y2="140" stroke-width="2.5"/>
+
+    <!-- 电路图案（顶部/左侧面） -->
+    <circle cx="82" cy="46" r="3" fill="#024256" stroke="none"/>
+    <circle cx="96" cy="56" r="3" fill="#024256" stroke="none"/>
+    <circle cx="70" cy="74" r="3" fill="#024256" stroke="none"/>
+    <circle cx="80" cy="84" r="3" fill="#024256" stroke="none"/>
+    <circle cx="70" cy="104" r="3" fill="#024256" stroke="none"/>
+    <path d="M 82 46 L 96 56" stroke-width="2.5"/>
+    <path d="M 70 74 L 80 84 L 70 104" stroke-width="2.5"/>
+
+    <!-- 放大镜图案（右侧面） -->
+    <circle cx="134" cy="100" r="22" stroke-width="2.5"/>
+    <path d="M 147 117 L 160 130" stroke-width="2.5"/>
+
+    <!-- 放大镜镜片内的文本线 -->
+    <g stroke-width="2">
+      <path d="M 124 91 L 144 91" />
+      <path d="M 124 96 L 144 96" />
+      <path d="M 124 101 L 144 101" />
+      <path d="M 124 106 L 144 106" />
+    </g>
+  </g>
+</svg>

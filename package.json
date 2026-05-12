@@ -1,0 +1,78 @@
+{
+  "name": "es-cube",
+  "productName": "EsCube",
+  "version": "0.0.1",
+  "description": "A modern Elasticsearch client with AI-powered query assistance",
+  "author": "UNXAI Team",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main/index.js",
+  "keywords": [
+    "elasticsearch",
+    "client",
+    "gui",
+    "ai",
+    "electron",
+    "react"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development node scripts/dev.js",
+    "build": "pnpm run build:main && pnpm run build:preload && pnpm run build:renderer",
+    "build:main": "tsc -p packages/main/tsconfig.json && node scripts/fix-dist.js",
+    "build:preload": "tsc -p packages/preload/tsconfig.json",
+    "build:renderer": "vite build",
+    "package": "pnpm run clean && pnpm run build && electron-builder",
+    "package:mac": "pnpm run clean && pnpm run build && electron-builder --mac",
+    "package:win": "pnpm run clean && pnpm run build && electron-builder --win",
+    "package:linux": "pnpm run clean && pnpm run build && electron-builder --linux",
+    "clean": "rm -rf dist build",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "electronDownload": {
+    "mirror": "https://npmmirror.com/mirrors/electron/"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "axios": "^1.16.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.3.9",
+    "lucide-react": "^1.14.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.6.0",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.25.0",
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/node": "^20.19.40",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.5.0",
+    "concurrently": "^9.2.1",
+    "electron": "^28.3.3",
+    "electron-builder": "^26.8.1",
+    "eslint": "^9.25.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "globals": "^16.0.0",
+    "postcss": "^8.5.14",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4.3.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.30.1",
+    "vite": "^6.3.5",
+    "wait-on": "^9.0.5"
+  }
+}
