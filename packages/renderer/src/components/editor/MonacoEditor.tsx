@@ -23,7 +23,7 @@ export function MonacoEditor({ value, onChange, language = 'json', height = '400
   }, [onChange])
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden h-full w-full">
+    <div className="border border-border rounded-lg overflow-hidden h-full w-full monaco-editor-container">
       <Editor
         height={height}
         defaultLanguage={language}

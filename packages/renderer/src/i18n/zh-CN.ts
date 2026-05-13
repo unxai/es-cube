@@ -115,6 +115,7 @@ export const zhCN = {
     confirmDelete: "确定要删除这条文档吗？",
     confirmBatchDelete: "确定要批量删除选中的文档吗？",
     editDocument: "编辑文档",
+    disabledWhileEditing: "手动编辑 JSON 时搜索功能已禁用",
   },
   rest: {
     title: "REST 控制台",

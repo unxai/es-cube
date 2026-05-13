@@ -84,3 +84,14 @@
     cursor: pointer;
   }
 }
+
+/* Fix for draggable height: prevent iframe from capturing mouse events during resize */
+body.is-resizing {
+  cursor: row-resize !important;
+  user-select: none;
+}
+
+body.is-resizing iframe,
+body.is-resizing .monaco-editor-container {
+  pointer-events: none !important;
+}

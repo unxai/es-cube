@@ -95,6 +95,69 @@ function App() {
   const [pendingSearchQuery, setPendingSearchQuery] = useState<string | null>(
     null,
   );
+  const [editorHeight, setEditorHeight] = useState(300);
+  const [resultHeight, setResultHeight] = useState(400);
+  const [isResizingEditor, setIsResizingEditor] = useState(false);
+  const [isResizingResult, setIsResizingResult] = useState(false);
+
+  const startResizingEditor = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizingEditor(true);
+  }, []);
+
+  const startResizingResult = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizingResult(true);
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizingEditor(false);
+    setIsResizingResult(false);
+  }, []);
+
+  const resize = useCallback(
+    (e: MouseEvent) => {
+      if (isResizingEditor) {
+        // Find the container offset
+        const container = document.querySelector('.query-editor-container');
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          const newHeight = e.clientY - rect.top - 40; // Subtract header height
+          setEditorHeight(Math.max(100, newHeight));
+        }
+      } else if (isResizingResult) {
+        const container = document.querySelector('.result-editor-container');
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          const newHeight = e.clientY - rect.top - 40; // Subtract header height
+          setResultHeight(Math.max(100, newHeight));
+        }
+      }
+    },
+    [isResizingEditor, isResizingResult],
+  );
+
+  useEffect(() => {
+    if (isResizingEditor || isResizingResult) {
+      window.addEventListener("mousemove", resize);
+      window.addEventListener("mouseup", stopResizing);
+    } else {
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+    }
+    return () => {
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+    };
+  }, [isResizingEditor, isResizingResult, resize, stopResizing]);
+
+  useEffect(() => {
+    if (isResizingEditor || isResizingResult) {
+      document.body.classList.add('is-resizing');
+    } else {
+      document.body.classList.remove('is-resizing');
+    }
+  }, [isResizingEditor, isResizingResult]);
 
   type AppView =
     | "search"
@@ -191,9 +254,12 @@ function App() {
       return;
     }
 
-    // If user has typed something in search panel but hasn't submitted, use that
-    if (pendingSearchQuery !== null) {
-      handleSearch(pendingSearchQuery, pendingSearchIndex || undefined);
+    // Use current pending state if available, otherwise use query
+    const searchToExecute = pendingSearchQuery !== null ? pendingSearchQuery : null;
+    
+    if (searchToExecute !== null) {
+      // If we have a pending search from the top bar, use it
+      handleSearch(searchToExecute, pendingSearchIndex || undefined);
       return;
     }
 
@@ -203,7 +269,7 @@ function App() {
     }
 
     await executeQuery(1, pageSize, sortField, sortOrder);
-  }, [selectedInstanceId, dslCheck, t, pageSize, sortField, sortOrder]);
+  }, [selectedInstanceId, dslCheck, t, pageSize, sortField, sortOrder, pendingSearchQuery, pendingSearchIndex]);
 
   const executeQuery = async (
     page = 1,
@@ -216,8 +282,8 @@ function App() {
       const queryToExecute = query || '{\n  "query": {\n    "match_all": {}\n  }\n}';
       const parsedQuery = JSON.parse(queryToExecute);
 
-      parsedQuery.from = (page - 1) * size;
-      parsedQuery.size = size;
+      parsedQuery.from = parsedQuery.from ?? (page - 1) * size;
+      parsedQuery.size = parsedQuery.size ?? size;
 
       if (field) {
         parsedQuery.sort = [{ [field]: { order: order } }];
@@ -322,7 +388,7 @@ function App() {
     setCurrentView(view);
   };
 
-  const handleSearch = (searchQuery: string, index?: string) => {
+  const handleSearch = async (searchQuery: string, index?: string) => {
     // Generate a valid query_string DSL safely
     const dslObj = {
       query: {
@@ -339,35 +405,33 @@ function App() {
 
     // Execute query immediately with the new DSL
     setIsExecuting(true);
-    setTimeout(async () => {
-      try {
-        const searchIndex = index || selectedIndex;
-        const path = searchIndex ? `/${searchIndex}/_search` : "/_search";
-        const result = await window.api.es.executeQuery(
-          selectedInstanceId!,
-          "POST",
-          path,
-          dslObj,
-        );
+    try {
+      const searchIndex = index || selectedIndex;
+      const path = searchIndex ? `/${searchIndex}/_search` : "/_search";
+      const result = await window.api.es.executeQuery(
+        selectedInstanceId!,
+        "POST",
+        path,
+        dslObj,
+      );
 
-        if (result.success) {
-          setQueryResult(result.data);
-          setCurrentPage(1);
-          setSortField(null);
-          setSortOrder("desc");
-          setSelectedDocs(new Set());
-        } else {
-          setQueryResult({ error: result.error });
-          toast.error(result.error);
-        }
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : "Unknown error";
-        setQueryResult({ error: errMsg });
-        toast.error(errMsg);
-      } finally {
-        setIsExecuting(false);
+      if (result.success) {
+        setQueryResult(result.data);
+        setCurrentPage(1);
+        setSortField(null);
+        setSortOrder("desc");
+        setSelectedDocs(new Set());
+      } else {
+        setQueryResult({ error: result.error });
+        toast.error(result.error);
       }
-    }, 50);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : "Unknown error";
+      setQueryResult({ error: errMsg });
+      toast.error(errMsg);
+    } finally {
+      setIsExecuting(false);
+    }
   };
 
   const toggleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -540,8 +604,19 @@ function App() {
                   <SearchPanel
                     onSearch={handleSearch}
                     onQueryChange={(q, idx) => {
-                      setPendingSearchQuery(q || null);
+                      setPendingSearchQuery(q || "");
                       setPendingSearchIndex(idx);
+                      
+                      // Also update the DSL editor immediately to reflect what's being typed
+                      const dslObj = {
+                        query: {
+                          query_string: {
+                            query: q ? `*${q}*` : "*",
+                          },
+                        },
+                        size: 50,
+                      };
+                      setQuery(JSON.stringify(dslObj, null, 2));
                     }}
                   />
                 </div>
@@ -642,15 +717,14 @@ function App() {
             <div className="flex-1 flex flex-col gap-4 min-h-0">
               {/* Query Editor */}
               <div
-                className={`bg-background rounded-xl border shadow-sm flex flex-col overflow-hidden transition-all duration-300 ${isQueryEditorCollapsed ? "h-[44px] flex-none" : "flex-1 min-h-[200px]"}`}
+                className={`bg-background rounded-xl border shadow-sm flex flex-col overflow-hidden transition-all duration-300 ${isQueryEditorCollapsed ? "h-[44px] flex-none" : "flex-none min-h-[100px]"} query-editor-container`}
               >
                 <div
                   className="flex items-center justify-between px-3 py-2 border-b bg-card cursor-pointer hover:bg-muted/30 transition-colors"
-                  onClick={() =>
-                    setIsQueryEditorCollapsed(!isQueryEditorCollapsed)
-                  }
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2" onClick={() =>
+                    setIsQueryEditorCollapsed(!isQueryEditorCollapsed)
+                  }>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -689,23 +763,39 @@ function App() {
                 </div>
 
                 {!isQueryEditorCollapsed && (
-                  <div className="flex-1 relative min-h-0 animate-in fade-in duration-300">
-                    <div className="absolute inset-0">
-                      <MonacoEditor
-                        value={query}
-                        onChange={setQuery}
-                        language="json"
-                        height="100%"
-                        theme={effectiveTheme}
-                      />
+                  <>
+                    <div className="relative min-h-0 animate-in fade-in duration-300" style={{ height: `${editorHeight}px` }}>
+                      <div className="absolute inset-0">
+                        <MonacoEditor
+                          value={query}
+                          onChange={(newVal) => {
+                            setQuery(newVal);
+                            // If the user is manually editing JSON, clear the pending search state
+                            // so the 'Execute Query' button uses the editor content.
+                            if (newVal !== query) {
+                              setPendingSearchQuery(null);
+                            }
+                          }}
+                          language="json"
+                          height="100%"
+                          theme={effectiveTheme}
+                        />
+                      </div>
                     </div>
-                  </div>
+                    {/* Resize Handle - Larger hit area */}
+                    <div
+                      className="h-2 w-full bg-transparent hover:bg-primary/20 cursor-row-resize transition-colors group flex items-center justify-center relative z-10"
+                      onMouseDown={startResizingEditor}
+                    >
+                      <div className="w-12 h-1 bg-muted-foreground/20 rounded-full group-hover:bg-primary/40"></div>
+                    </div>
+                  </>
                 )}
               </div>
 
               {/* Query Result */}
               <div
-                className={`bg-background rounded-xl border shadow-sm flex flex-col overflow-hidden transition-all duration-300 ${isQueryEditorCollapsed ? "flex-[3]" : "flex-1"} min-h-[300px]`}
+                className={`bg-background rounded-xl border shadow-sm flex flex-col overflow-hidden transition-all duration-300 ${isQueryEditorCollapsed ? "flex-1" : "flex-none"} result-editor-container`}
               >
                 <div className="flex items-center justify-between px-3 py-2 border-b bg-card">
                   <div className="flex items-center gap-2">
@@ -752,7 +842,7 @@ function App() {
                     </div>
                   ) : null}
                   {resultViewMode === "json" ? (
-                    <div className="flex-1 relative min-h-0">
+                    <div className="relative min-h-0" style={{ height: isQueryEditorCollapsed ? "500px" : `${resultHeight}px` }}>
                       <div className="absolute inset-0">
                         <MonacoEditor
                           value={formattedJsonResult}
@@ -765,7 +855,7 @@ function App() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex-1 overflow-auto p-2">
+                    <div className="relative overflow-auto p-2" style={{ height: isQueryEditorCollapsed ? "500px" : `${resultHeight}px` }}>
                       {renderBatchActionBar()}
                       {queryResult?.hits?.hits &&
                       queryResult.hits.hits.length > 0 ? (
@@ -963,6 +1053,14 @@ function App() {
                           )}
                         </div>
                       )}
+                    </div>
+                  )}
+                  {!isQueryEditorCollapsed && (
+                    <div
+                      className="h-2 w-full bg-transparent hover:bg-primary/20 cursor-row-resize transition-colors group flex items-center justify-center relative z-10"
+                      onMouseDown={startResizingResult}
+                    >
+                      <div className="w-12 h-1 bg-muted-foreground/20 rounded-full group-hover:bg-primary/40"></div>
                     </div>
                   )}
                 </div>

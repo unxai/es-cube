@@ -115,6 +115,7 @@ export const enUS = {
     confirmDelete: "Are you sure you want to delete this document?",
     confirmBatchDelete: "Are you sure you want to delete the selected documents?",
     editDocument: "Edit Document",
+    disabledWhileEditing: "Search disabled while manually editing JSON",
   },
   rest: {
     title: "REST Console",

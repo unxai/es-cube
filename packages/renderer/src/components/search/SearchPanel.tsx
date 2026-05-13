@@ -46,55 +46,11 @@ export function SearchPanel({ onSearch, onQueryChange }: SearchPanelProps) {
   }, [])
 
   useEffect(() => {
-    if (query.length >= 2 && selectedInstanceId) {
-      setIsSearching(true)
-      const timer = setTimeout(async () => {
-        try {
-          const path = selectedIndex ? `/${selectedIndex}/_search` : '/_search'
-          const result = await window.api.es.executeQuery(
-            selectedInstanceId,
-            'POST',
-            path,
-            {
-              query: { 
-                query_string: { 
-                  query: `*${query}*`,
-                  analyze_wildcard: true,
-                  default_operator: 'AND'
-                } 
-              },
-              size: 10
-            }
-          )
-
-          let docResults: SearchResult[] = []
-          if (result.success && result.data?.hits?.hits) {
-            docResults = result.data.hits.hits.map((hit: ESHit) => {
-              const source = hit._source || {}
-              const title = source.title || source.name || source.label || source.content || source.text || source.message || hit._id
-              const preview = JSON.stringify(source).substring(0, 80)
-              return {
-                index: hit._index,
-                type: 'document' as const,
-                name: String(title).substring(0, 60),
-                preview: preview.length > 80 ? preview + '...' : preview
-              }
-            })
-          }
-
-          setSearchResults(docResults.slice(0, 8))
-        } catch (error) {
-          console.error('Search error:', error)
-          toast.error('Search error: ' + (error instanceof Error ? error.message : 'Unknown'))
-        } finally {
-          setIsSearching(false)
-        }
-      }, 500)
-      return () => clearTimeout(timer)
-    } else {
+    // We only want to show search history when the query is empty or very short
+    if (query.length < 2) {
       setSearchResults([])
     }
-  }, [query, selectedInstanceId])
+  }, [query])
 
   const handleSubmit = () => {
     if (query.trim()) {
@@ -166,79 +122,42 @@ export function SearchPanel({ onSearch, onQueryChange }: SearchPanelProps) {
         </div>
       </div>
 
-      {showResults && (searchResults.length > 0 || (query.length < 2 && searchHistory.length > 0)) && (
+      {showResults && query.length < 2 && searchHistory.length > 0 && (
         <div className="absolute top-full left-0 right-0 bg-card border border-t-0 border-primary/30 rounded-b-xl shadow-xl z-50 overflow-hidden ring-4 ring-primary/10">
           <div className="p-2 flex flex-col gap-0.5">
-            {searchResults.length > 0 ? (
-              searchResults.map((result, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleResultClick(result)}
-                  className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/60 transition-colors text-left group"
-                >
-                  <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${
-                    result.type === 'index' ? 'bg-primary/10 text-primary border border-primary/20' :
-                    result.type === 'document' ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
-                    'bg-purple-500/10 text-purple-500 border border-purple-500/20'
-                  }`}>
-                    {result.type === 'index' && <Database className="w-4 h-4" />}
-                    {result.type === 'document' && <Search className="w-4 h-4" />}
-                    {result.type === 'field' && <span className="text-xs font-bold">F</span>}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-foreground text-sm font-medium truncate group-hover:text-primary transition-colors">
-                        {result.name}
-                      </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-muted text-muted-foreground border">
-                        {result.type}
-                      </span>
-                    </div>
-                    {result.preview && (
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">{result.preview}</p>
-                    )}
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100" />
-                </button>
-              ))
-            ) : query.length < 2 && searchHistory.length > 0 ? (
-              <>
-                <div className="flex items-center justify-between px-2 py-1.5">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('search.history')}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      clearSearchHistory()
-                    }}
-                    className="h-6 text-[10px] text-muted-foreground hover:text-destructive gap-1 px-2"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    {t('search.clearHistory')}
-                  </Button>
+            <div className="flex items-center justify-between px-2 py-1.5">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('search.history')}</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  clearSearchHistory()
+                }}
+                className="h-6 text-[10px] text-muted-foreground hover:text-destructive gap-1 px-2"
+              >
+                <Trash2 className="w-3 h-3" />
+                {t('search.clearHistory')}
+              </Button>
+            </div>
+            {searchHistory.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setQuery(item)
+                  onSearch(item, selectedIndex || undefined)
+                  setShowResults(false)
+                }}
+                className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/60 transition-colors text-left group"
+              >
+                <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
+                  <History className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
-                {searchHistory.map((item, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setQuery(item)
-                      onSearch(item, selectedIndex || undefined)
-                      setShowResults(false)
-                    }}
-                    className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/60 transition-colors text-left group"
-                  >
-                    <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
-                      <History className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                    <span className="text-foreground text-sm font-medium truncate flex-1">{item}</span>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100" />
-                  </button>
-                ))}
-              </>
-            ) : null}
+                <span className="text-foreground text-sm font-medium truncate flex-1">{item}</span>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100" />
+              </button>
+            ))}
           </div>
-          
         </div>
       )}
     </div>
