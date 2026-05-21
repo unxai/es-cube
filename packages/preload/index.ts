@@ -117,6 +117,7 @@ interface AIAPI {
 
 contextBridge.exposeInMainWorld('api', {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  openExternal: (url: string) => ipcRenderer.invoke('open-external', url),
   
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),
@@ -155,6 +156,7 @@ declare global {
   interface Window {
     api: {
       getAppVersion: () => Promise<string>
+      openExternal: (url: string) => Promise<void>
       updater: UpdaterAPI
       ai: AIAPI
       storage: StorageAPI

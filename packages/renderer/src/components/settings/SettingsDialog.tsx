@@ -5,6 +5,7 @@ import { Input } from '../ui/input'
 import { Button } from '../ui/button'
 import { Settings, BrainCircuit, Globe, Palette, FileText, ArrowDown, Check, Loader2 } from 'lucide-react'
 import { useAppStore, type AIProvider } from '../../store/useAppStore'
+import { toast } from 'sonner'
 
 interface SettingsDialogProps {
   open: boolean
@@ -89,11 +90,14 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
       if (result) {
         setUpdateInfo({ version: result.version, releaseNotes: result.releaseNotes })
         setUpdateStatus('available')
+        toast.success(`${t('settings.updateAvailable')}: v${result.version}`)
       } else {
         setUpdateStatus('idle')
+        toast.info(t('settings.noUpdateAvailable') || '当前已是最新版本')
       }
-    } catch (error) {
+    } catch (error: any) {
       setUpdateStatus('error')
+      toast.error(`${t('settings.updateError')}: ${error?.message || '未知错误'}`)
     }
   }
 
@@ -472,6 +476,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                               </Button>
                             )}
                           </div>
+                        </div>
+
+                        <div className="mt-3 pt-3 border-t border-border/10 flex items-center justify-between text-[11px] text-muted-foreground/70">
+                          <span>{t('settings.updateProblem') || '遇到更新问题？'}</span>
+                          <button
+                            onClick={async () => {
+                              await window.api.openExternal('https://github.com/unxai/es-cube/releases')
+                            }}
+                            className="text-primary hover:underline flex items-center gap-1 font-medium transition-colors cursor-pointer"
+                          >
+                            {t('settings.manuallyDownload') || '手动前往 GitHub 下载'} →
+                          </button>
                         </div>
 
                         <div className="mt-4 pt-4 border-t space-y-3">

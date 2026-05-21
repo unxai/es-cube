@@ -30,6 +30,7 @@ interface ESQueryResponse {
 
 interface ElectronAPI {
   getAppVersion: () => Promise<string>
+  openExternal: (url: string) => Promise<void>
   storage: {
     getInstances: () => Promise<ESInstance[]>
     getInstance: (id: string) => Promise<ESInstance | null>

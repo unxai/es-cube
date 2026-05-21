@@ -1,7 +1,7 @@
 {
   "name": "es-cube",
   "productName": "EsCube",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A modern Elasticsearch client with AI-powered query assistance",
   "author": "UNXAI Team",
   "license": "MIT",

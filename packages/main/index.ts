@@ -23,6 +23,15 @@ let autoUpdateSettings = {
 }
 let currentLocale = 'zh-CN'
 
+function isVersionNewer(latest: string, current: string): boolean {
+  const parse = (v: string) => v.replace(/^v/, '').split('.').map(Number);
+  const [lMajor = 0, lMinor = 0, lPatch = 0] = parse(latest);
+  const [cMajor = 0, cMinor = 0, cPatch = 0] = parse(current);
+  if (lMajor !== cMajor) return lMajor > cMajor;
+  if (lMinor !== cMinor) return lMinor > cMinor;
+  return lPatch > cPatch;
+}
+
 const setupAutoUpdater = () => {
   autoUpdater.autoDownload = autoUpdateSettings.autoDownload
   autoUpdater.autoInstallOnAppQuit = autoUpdateSettings.autoInstall
@@ -82,11 +91,15 @@ const setupMenu = () => {
           click: async () => {
             try {
               const result = await autoUpdater.checkForUpdates()
-              if (result?.updateInfo) {
-                mainWindow?.webContents.send('update-available', result.updateInfo)
-              } else {
-                mainWindow?.webContents.send('update-not-available')
+              if (result && result.updateInfo) {
+                const latestVersion = result.updateInfo.version
+                const currentVersion = app.getVersion()
+                if (isVersionNewer(latestVersion, currentVersion)) {
+                  mainWindow?.webContents.send('update-available', result.updateInfo)
+                  return
+                }
               }
+              mainWindow?.webContents.send('update-not-available')
             } catch (error) {
               mainWindow?.webContents.send('update-error', error)
             }
@@ -278,12 +291,34 @@ const setupIpcHandlers = () => {
 
   ipcMain.handle('updater:check', async () => {
     try {
+      logService.info('Checking for updates via updater:check IPC...')
       const result = await autoUpdater.checkForUpdates()
-      return result?.updateInfo
-    } catch (error) {
-      console.error('Failed to check for updates:', error)
+      logService.info('Update check result obtained', { 
+        hasResult: !!result,
+        hasUpdateInfo: !!result?.updateInfo,
+        version: result?.updateInfo?.version 
+      })
+      if (!result || !result.updateInfo) {
+        return null
+      }
+      const latestVersion = result.updateInfo.version
+      const currentVersion = app.getVersion()
+      logService.info('Comparing versions', { latestVersion, currentVersion })
+      if (isVersionNewer(latestVersion, currentVersion)) {
+        logService.info('New version is available', { latestVersion })
+        return result.updateInfo
+      }
+      logService.info('No newer version than current')
       return null
+    } catch (error) {
+      logService.error('Error checking for updates', error as Error)
+      throw error
     }
+  })
+
+  ipcMain.handle('open-external', async (_, url: string) => {
+    const { shell } = await import('electron')
+    await shell.openExternal(url)
   })
 
   ipcMain.handle('updater:download', async () => {
