@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, Database, BarChart3, Settings, Activity, Search, Server, Layers } from 'lucide-react'
+import { Database, BarChart3, Settings, Activity, Search, Server, Layers, PanelLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { useConnectionStore } from '../../store/useConnectionStore'
 import { useAppStore } from '../../store/useAppStore'
@@ -10,14 +10,16 @@ import logoSrc from '../../assets/logo.svg'
 type AppView = 'search' | 'rest' | 'nodes' | 'shards' | 'indices' | 'dashboard'
 
 interface SidebarProps {
-  onToolChange?: (view: AppView) => void
-  currentView?: AppView
+  onToolChange?: (view: AppView) => void;
+  currentView?: AppView;
 }
 
-export function Sidebar({ onToolChange, currentView = 'search' }: SidebarProps) {
+export function Sidebar({ 
+  onToolChange, 
+  currentView = 'search'
+}: SidebarProps) {
   const { selectedInstanceId } = useConnectionStore()
-  const { t } = useAppStore()
-  const [isCollapsed, setIsCollapsed] = useState(false)
+  const { t, isSidebarCollapsed: isCollapsed, setSidebarCollapsed: setIsCollapsed } = useAppStore()
   const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
@@ -38,55 +40,81 @@ export function Sidebar({ onToolChange, currentView = 'search' }: SidebarProps) 
 
   const isViewActive = (view: AppView) => currentView === view
 
+  const isMac = typeof window !== 'undefined' && navigator.userAgent.includes('Mac')
+  const sidebarWidthClass = isCollapsed 
+    ? (isMac ? 'w-20' : 'w-16') 
+    : 'w-60';
+
   return (
-    <div className={`flex flex-col bg-card border-r transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'} z-20 shadow-sm relative`}>
-      <div className="p-3 border-b flex items-center justify-between h-[60px] bg-card/50 backdrop-blur-sm">
-        {!isCollapsed && (
-          <div className="flex items-center gap-3 px-1">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm overflow-hidden">
-              <img src={logoSrc} alt="Logo" className="w-5 h-5 object-contain" />
+    <div className={`flex flex-col bg-card border-r border-border/60 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${sidebarWidthClass} z-20 shadow-sm relative shrink-0`}>
+      {/* 头部 Logo 区域 */}
+      <div 
+        className="border-b border-border/40 flex items-center h-[60px] bg-card/45 backdrop-blur-sm select-none px-3"
+        style={{ WebkitAppRegion: isMac ? 'drag' : 'no-drag' } as any}
+      >
+        {!isCollapsed ? (
+          <div className="flex items-center w-full" style={{ WebkitAppRegion: 'no-drag' } as any}>
+            {/* macOS 交通灯避让 */}
+            <div className={isMac ? 'w-[72px] shrink-0' : 'w-0'} />
+            
+            {/* 顶栏控制按钮 (开关) */}
+            <div className="flex items-center shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsCollapsed(true)}
+                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-all active:scale-90 animate-in fade-in duration-200"
+                title={t('sidebar.collapse') || "Collapse sidebar"}
+              >
+                <PanelLeft className="h-4 w-4" />
+              </Button>
             </div>
-            <h1 className="text-foreground font-semibold text-lg tracking-tight">EsCube</h1>
+
+            {/* 精美竖线分隔 */}
+            <div className="h-4 w-px bg-border/20 mx-2 shrink-0" />
+
+            {/* Logo 和 AppName */}
+            <div className="flex items-center gap-2 overflow-hidden">
+              <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner overflow-hidden relative group shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent" />
+                <img src={logoSrc} alt="Logo" className="w-3.5 h-3.5 object-contain relative z-10 transition-transform group-hover:scale-105 duration-200" />
+              </div>
+              <span className="text-foreground font-black text-xs tracking-tight bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent truncate select-none">
+                EsCube
+              </span>
+            </div>
           </div>
-        )}
-        {isCollapsed && (
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mx-auto border border-primary/20 shadow-sm overflow-hidden">
-            <img src={logoSrc} alt="Logo" className="w-5 h-5 object-contain" />
+        ) : (
+          /* 折叠状态 */
+          <div className="w-full h-full flex items-center justify-center" style={{ WebkitAppRegion: 'no-drag' } as any}>
+            {isMac ? (
+              /* macOS 折叠时只留交通灯的纯净空间 */
+              <div className="w-full h-full" />
+            ) : (
+              /* 非 macOS 折叠时显示精美小 Logo */
+              <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center border border-primary/20 shadow-inner overflow-hidden relative group animate-in fade-in duration-200">
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-transparent" />
+                <img src={logoSrc} alt="Logo" className="w-4 h-4 object-contain relative z-10" />
+              </div>
+            )}
           </div>
-        )}
-        {!isCollapsed && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg ml-auto"
-          >
-            <ChevronLeft className="h-4.5 w-4.5" />
-          </Button>
-        )}
-        {isCollapsed && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="absolute -right-3 top-[14px] h-6 w-6 rounded-full border bg-background shadow-md text-muted-foreground hover:text-foreground hover:bg-muted/80 z-50 flex items-center justify-center"
-          >
-            <ChevronRight className="h-3.5 w-3.5" />
-          </Button>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-6 scrollbar-thin">
-
-
+      {/* 导航菜单 */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-4 scrollbar-thin">
         <div>
-          <div className={`text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 ${isCollapsed ? 'text-center' : 'px-3'}`}>
-            {isCollapsed ? 'TL' : t('sidebar.tools')}
-          </div>
-          <div className="space-y-0.5">
+          {isCollapsed ? (
+            <div className="h-4" />
+          ) : (
+            <div className="text-[9px] font-bold text-muted-foreground/75 uppercase tracking-widest mb-3 px-3">
+              {t('sidebar.tools')}
+            </div>
+          )}
+          <div className="space-y-1">
             {[
-              { id: 'dashboard', icon: BarChart3, label: t('sidebar.dashboard') },
               { id: 'search', icon: Search, label: t('sidebar.search') },
+              { id: 'dashboard', icon: BarChart3, label: t('sidebar.dashboard') },
               { id: 'rest', icon: Activity, label: t('sidebar.rest') },
               { id: 'nodes', icon: Server, label: t('sidebar.nodes') },
               { id: 'shards', icon: Layers, label: t('sidebar.shards') },
@@ -98,21 +126,29 @@ export function Sidebar({ onToolChange, currentView = 'search' }: SidebarProps) 
                 <Button
                   key={tool.id}
                   variant="ghost"
-                  className={`w-full justify-start transition-all duration-200 h-9 ${isCollapsed ? 'px-0 justify-center' : 'px-3'} ${
+                  className={`w-full justify-start transition-all duration-200 h-9 relative ${isCollapsed ? 'px-0 justify-center' : 'px-3'} ${
                     active
-                      ? 'bg-primary/10 text-primary font-medium hover:bg-primary/15'
-                      : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
-                  } rounded-lg`}
+                      ? 'bg-primary/10 text-primary font-bold hover:bg-primary/15'
+                      : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+                  } rounded-lg group`}
                   onClick={() => handleViewChange(tool.id as AppView)}
                   title={isCollapsed ? tool.label : undefined}
                 >
-                  <div className={`relative ${isCollapsed ? '' : 'mr-3'}`}>
-                    <Icon className={`h-4.5 w-4.5 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className={`relative flex items-center ${isCollapsed ? '' : 'mr-3'}`}>
+                    <Icon className={`h-4.5 w-4.5 transition-transform duration-200 group-hover:scale-105 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
                   </div>
                   {!isCollapsed && (
-                    <span className={`text-sm ${active ? 'text-primary' : 'text-foreground'}`}>
+                    <span className="text-xs tracking-tight">
                       {tool.label}
                     </span>
+                  )}
+                  
+                  {/* 精美侧边高亮指示呼吸灯柱 */}
+                  {active && !isCollapsed && (
+                    <div className="absolute right-0 top-2 bottom-2 w-[3px] rounded-l-full bg-gradient-to-b from-purple-500 to-indigo-500 shadow-sm shadow-primary/30" />
+                  )}
+                  {active && isCollapsed && (
+                    <div className="absolute right-0 top-1 bottom-1 w-[2px] rounded-l-full bg-primary" />
                   )}
                 </Button>
               )
@@ -121,15 +157,16 @@ export function Sidebar({ onToolChange, currentView = 'search' }: SidebarProps) 
         </div>
       </div>
 
-      <div className="mt-auto p-2 border-t bg-muted/20">
+      {/* 底部设置菜单 */}
+      <div className="mt-auto p-2 border-t border-border/40 bg-muted/10 shrink-0">
         <Button
           variant="ghost"
           onClick={() => setShowSettings(true)}
-          className={`w-full justify-start transition-all duration-200 h-10 ${isCollapsed ? 'px-0 justify-center' : 'px-3'} text-muted-foreground hover:bg-primary/10 hover:text-primary rounded-lg group`}
+          className={`w-full justify-start transition-all duration-250 h-9.5 ${isCollapsed ? 'px-0 justify-center' : 'px-3'} text-muted-foreground hover:bg-primary/5 hover:text-primary rounded-lg group`}
           title={isCollapsed ? t('sidebar.settings') : undefined}
         >
-          <Settings className={`h-4.5 w-4.5 shrink-0 transition-transform duration-300 group-hover:rotate-90 ${isCollapsed ? '' : 'mr-3'}`} />
-          {!isCollapsed && <span className="text-sm font-medium">{t('sidebar.settings')}</span>}
+          <Settings className={`h-4.5 w-4.5 shrink-0 transition-transform duration-500 ease-out group-hover:rotate-90 ${isCollapsed ? '' : 'mr-3'}`} />
+          {!isCollapsed && <span className="text-xs font-semibold tracking-tight">{t('sidebar.settings')}</span>}
         </Button>
       </div>
       

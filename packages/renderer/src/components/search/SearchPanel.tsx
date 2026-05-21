@@ -123,10 +123,10 @@ export function SearchPanel({ onSearch, onQueryChange }: SearchPanelProps) {
       </div>
 
       {showResults && query.length < 2 && searchHistory.length > 0 && (
-        <div className="absolute top-full left-0 right-0 bg-card border border-t-0 border-primary/30 rounded-b-xl shadow-xl z-50 overflow-hidden ring-4 ring-primary/10">
-          <div className="p-2 flex flex-col gap-0.5">
-            <div className="flex items-center justify-between px-2 py-1.5">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('search.history')}</span>
+        <div className="absolute top-full left-0 right-0 bg-card border border-border/80 border-t-0 rounded-b-2xl shadow-2xl z-50 overflow-hidden ring-4 ring-primary/5 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="p-2.5 flex flex-col gap-1">
+            <div className="flex items-center justify-between px-2.5 py-2 border-b border-border/40 mb-1">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t('search.history')}</span>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -134,9 +134,9 @@ export function SearchPanel({ onSearch, onQueryChange }: SearchPanelProps) {
                   e.stopPropagation()
                   clearSearchHistory()
                 }}
-                className="h-6 text-[10px] text-muted-foreground hover:text-destructive gap-1 px-2"
+                className="h-6 text-[10px] font-semibold text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1 px-2.5 rounded-md transition-all duration-200"
               >
-                <Trash2 className="w-3 h-3" />
+                <Trash2 className="w-3.5 h-3.5" />
                 {t('search.clearHistory')}
               </Button>
             </div>
@@ -148,13 +148,13 @@ export function SearchPanel({ onSearch, onQueryChange }: SearchPanelProps) {
                   onSearch(item, selectedIndex || undefined)
                   setShowResults(false)
                 }}
-                className="w-full flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/60 transition-colors text-left group"
+                className="w-full flex items-center gap-3 p-2.5 rounded-xl border border-transparent hover:border-primary/20 hover:bg-primary/5 dark:hover:bg-primary/10 active:scale-[0.98] transition-all duration-250 text-left group cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
-                  <History className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                <div className="w-8 h-8 rounded-lg bg-primary/5 dark:bg-primary/10 border border-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/10 dark:group-hover:bg-primary/20 group-hover:border-primary/25 transition-all duration-250">
+                  <History className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:scale-105 transition-all duration-250" />
                 </div>
-                <span className="text-foreground text-sm font-medium truncate flex-1">{item}</span>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors opacity-0 group-hover:opacity-100" />
+                <span className="text-foreground text-sm font-semibold truncate flex-1 group-hover:text-primary transition-colors duration-200">{item}</span>
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-all duration-250 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5" />
               </button>
             ))}
           </div>

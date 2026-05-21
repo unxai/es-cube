@@ -140,6 +140,10 @@ export const enUS = {
     title: "Shard Monitoring",
     description: "Track shard distribution and status across nodes",
     filter: "Filter by index or node...",
+    view: {
+      matrix: "Topology Matrix",
+      table: "Data Table",
+    },
     table: {
       index: "Index",
       shard: "Shard",

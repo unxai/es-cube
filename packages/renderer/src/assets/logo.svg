@@ -1,30 +1,158 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
-  <g stroke="#024256" stroke-linecap="round" stroke-linejoin="round">
-    <!-- 立方体轮廓和内棱线 -->
-    <polygon points="100,20 169,60 169,140 100,180 31,140 31,60" stroke-width="2.5"/>
-    <line x1="100" y1="100" x2="100" y2="20" stroke-width="2.5"/>
-    <line x1="100" y1="100" x2="169" y2="140" stroke-width="2.5"/>
-    <line x1="100" y1="100" x2="31" y2="140" stroke-width="2.5"/>
+  <defs>
+    <!-- 主渐变色：科技紫罗兰到极速蔚蓝 -->
+    <linearGradient id="cubeGradient" x1="45" y1="45" x2="155" y2="165" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="50%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
 
-    <!-- 电路图案（顶部/左侧面） -->
-    <circle cx="82" cy="46" r="3" fill="#024256" stroke="none"/>
-    <circle cx="96" cy="56" r="3" fill="#024256" stroke="none"/>
-    <circle cx="70" cy="74" r="3" fill="#024256" stroke="none"/>
-    <circle cx="80" cy="84" r="3" fill="#024256" stroke="none"/>
-    <circle cx="70" cy="104" r="3" fill="#024256" stroke="none"/>
-    <path d="M 82 46 L 96 56" stroke-width="2.5"/>
-    <path d="M 70 74 L 80 84 L 70 104" stroke-width="2.5"/>
+    <!-- 辅助星环渐变色：霓虹粉到未来青 -->
+    <linearGradient id="ringGradient" x1="30" y1="105" x2="170" y2="105" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#EC4899" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
 
-    <!-- 放大镜图案（右侧面） -->
-    <circle cx="134" cy="100" r="22" stroke-width="2.5"/>
-    <path d="M 147 117 L 160 130" stroke-width="2.5"/>
+    <!-- 核心心脏径向发光渐变 -->
+    <radialGradient id="coreGlow" cx="100" cy="105" r="30" fx="100" fy="105" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#06B6D4" stop-opacity="0.6" />
+      <stop offset="40%" stop-color="#8B5CF6" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#18181a" stop-opacity="0" />
+    </radialGradient>
 
-    <!-- 放大镜镜片内的文本线 -->
-    <g stroke-width="2">
-      <path d="M 124 91 L 144 91" />
-      <path d="M 124 96 L 144 96" />
-      <path d="M 124 101 L 144 101" />
-      <path d="M 124 106 L 144 106" />
-    </g>
+    <!-- 霓虹高斯模糊发光滤镜 -->
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.2" result="blur" />
+      <feComponentTransfer in="blur" result="glow">
+        <feFuncA type="linear" slope="1.4" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode in="glow" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- 柔和漫反射大背景光晕 -->
+    <filter id="ambientSoft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7.5" result="blur" />
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes heartBeat {
+      0%, 100% { transform: scale(1); opacity: 0.95; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+    @keyframes orbitPulse {
+      0%, 100% { opacity: 0.85; stroke-width: 2.2; }
+      50% { opacity: 1; stroke-width: 2.8; }
+    }
+    @keyframes floatParticle1 {
+      0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.35; }
+      50% { transform: translateY(-3.5px) translateX(1.5px); opacity: 0.9; }
+    }
+    @keyframes floatParticle2 {
+      0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0.45; }
+      50% { transform: translateY(3px) translateX(-2px); opacity: 0.85; }
+    }
+    @keyframes traceSignal {
+      0%, 100% { stroke-dashoffset: 0; opacity: 0.5; }
+      50% { stroke-dashoffset: 10; opacity: 0.8; }
+    }
+    .heart-core {
+      transform-origin: 100px 105px;
+      animation: heartBeat 3.2s ease-in-out infinite;
+    }
+    .orbit-line {
+      animation: orbitPulse 3.8s ease-in-out infinite;
+    }
+    .dust-1 {
+      animation: floatParticle1 5.2s ease-in-out infinite;
+    }
+    .dust-2 {
+      animation: floatParticle2 6.5s ease-in-out infinite;
+    }
+    .dust-3 {
+      animation: floatParticle1 4.4s ease-in-out infinite;
+    }
+    .dust-4 {
+      animation: floatParticle2 7.2s ease-in-out infinite;
+    }
+    .tech-trace {
+      stroke-dasharray: 4, 6;
+      animation: traceSignal 4.5s linear infinite;
+    }
+  </style>
+
+  <!-- 1. 漫反射发光大背景气泡 -->
+  <circle cx="100" cy="105" r="45" fill="url(#coreGlow)" filter="url(#ambientSoft)" opacity="0.8" />
+
+  <!-- 2. 中央核心跳动数据心脏 -->
+  <g class="heart-core">
+    <!-- 外围光圈 -->
+    <circle cx="100" cy="105" r="30" fill="url(#coreGlow)" />
+    <!-- 中层发光点阵 -->
+    <circle cx="100" cy="105" r="15" stroke="#8B5CF6" stroke-width="1.2" stroke-opacity="0.8" stroke-dasharray="3, 3" filter="url(#neonGlow)" />
+    <!-- 内部发光能量核 -->
+    <circle cx="100" cy="105" r="7" fill="#06B6D4" filter="url(#neonGlow)" />
+    <circle cx="100" cy="105" r="2.5" fill="#FFFFFF" />
   </g>
+
+  <!-- 3. 3D Isometric 立方体骨架 -->
+  <!-- 顶部面 (Top Face) - 半透明微弱倒影 -->
+  <polygon points="100,45 155,75 100,105 45,75" stroke="url(#cubeGradient)" stroke-width="2" fill="url(#cubeGradient)" fill-opacity="0.04" stroke-linejoin="round" />
+  
+  <!-- 左侧面 (Left Face) - 阶梯色高通透 -->
+  <polygon points="45,75 100,105 100,165 45,135" stroke="url(#cubeGradient)" stroke-width="2" fill="url(#cubeGradient)" fill-opacity="0.06" stroke-linejoin="round" />
+  
+  <!-- 右侧面 (Right Face) - 圆滑倒角描边 -->
+  <polygon points="100,105 155,75 155,135 100,165" stroke="url(#cubeGradient)" stroke-width="2" fill="url(#cubeGradient)" fill-opacity="0.08" stroke-linejoin="round" />
+
+  <!-- 4. 立方体科技晶格内棱线 (景深深度对比 - 暗紫虚线) -->
+  <line x1="100" y1="105" x2="100" y2="45" stroke="#4C1D95" stroke-width="1.2" stroke-opacity="0.25" stroke-dasharray="2, 2" />
+  <line x1="100" y1="105" x2="155" y2="135" stroke="#4C1D95" stroke-width="1.2" stroke-opacity="0.25" stroke-dasharray="2, 2" />
+  <line x1="100" y1="105" x2="45" y2="135" stroke="#4C1D95" stroke-width="1.2" stroke-opacity="0.25" stroke-dasharray="2, 2" />
+
+  <!-- 5. 表面科技电路走线与精密芯片点 -->
+  <!-- 顶部精密数码走线 -->
+  <circle cx="100" cy="65" r="2.2" fill="#8B5CF6" filter="url(#neonGlow)" />
+  <line x1="100" y1="65" x2="122" y2="77" stroke="#8B5CF6" stroke-width="1.2" stroke-opacity="0.75" />
+  <circle cx="122" cy="77" r="1.5" fill="#06B6D4" />
+  
+  <!-- 左侧面精密电路拓扑 -->
+  <circle cx="65" cy="110" r="2.2" fill="#06B6D4" filter="url(#neonGlow)" />
+  <path d="M 65 110 L 82 119 L 82 138" stroke="#06B6D4" stroke-width="1.2" stroke-opacity="0.65" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="82" cy="138" r="1.5" fill="#8B5CF6" />
+  
+  <!-- 右侧面高频数码流虚线信号 -->
+  <path d="M 115 113 L 138 101 L 138 126" stroke="#3B82F6" stroke-width="1" stroke-opacity="0.4" class="tech-trace" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="138" cy="126" r="1.8" fill="#EC4899" />
+
+  <!-- 6. 智控引力星环轨道 -->
+  <ellipse cx="100" cy="105" rx="76" ry="26" transform="rotate(-28, 100, 105)" stroke="url(#ringGradient)" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="192, 42" fill="none" class="orbit-line" filter="url(#neonGlow)" />
+
+  <!-- 7. 引力轨道悬浮能量星尘粒子 (Star Dust) -->
+  <circle cx="48" cy="85" r="1.5" fill="#06B6D4" class="dust-1" filter="url(#neonGlow)" />
+  <circle cx="152" cy="78" r="2.2" fill="#EC4899" class="dust-2" filter="url(#neonGlow)" />
+  <circle cx="118" cy="148" r="1.2" fill="#8B5CF6" class="dust-3" opacity="0.6" />
+  <circle cx="70" cy="142" r="1.8" fill="#06B6D4" class="dust-4" opacity="0.8" />
+
+  <!-- 8. 量子折射探针 (完美替代原粗大硬手柄) -->
+  <!-- 物理定位卡槽插口 -->
+  <circle cx="152" cy="132" r="4.2" stroke="url(#ringGradient)" stroke-width="1.5" fill="#18181a" filter="url(#neonGlow)" />
+  <circle cx="152" cy="132" r="1.8" fill="#06B6D4" />
+
+  <!-- 探针外层柔和霓虹晕染轨道 -->
+  <line x1="152" y1="132" x2="182" y2="162" stroke="url(#ringGradient)" stroke-width="5" stroke-linecap="round" opacity="0.25" filter="url(#neonGlow)" />
+  <!-- 探针核心高亮光线导轨 -->
+  <line x1="152" y1="132" x2="182" y2="162" stroke="url(#ringGradient)" stroke-width="1.8" stroke-linecap="round" />
+
+  <!-- 探针轴线上排列的发光量子粒子流 -->
+  <circle cx="159" cy="139" r="2.4" fill="#06B6D4" filter="url(#neonGlow)" />
+  <circle cx="168" cy="148" r="1.8" fill="#8B5CF6" opacity="0.8" />
+  <circle cx="176" cy="156" r="1.2" fill="#EC4899" opacity="0.5" />
+
+  <!-- 探针末梢感应发光球 -->
+  <circle cx="182" cy="162" r="4.5" fill="#EC4899" filter="url(#neonGlow)" />
+  <circle cx="182" cy="162" r="1.8" fill="#FFFFFF" />
 </svg>

@@ -3,6 +3,31 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    (function() {
+      try {
+        var storageStr = localStorage.getItem('escube-app-storage');
+        var theme = 'dark';
+        if (storageStr) {
+          var storage = JSON.parse(storageStr);
+          if (storage && storage.state && storage.state.theme) {
+            theme = storage.state.theme;
+          }
+        }
+        if (theme === 'system') {
+          var isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          theme = isSystemDark ? 'dark' : 'light';
+        }
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {
+        console.error('Theme bootstrap error', e);
+      }
+    })();
+  </script>
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EsCube - Elasticsearch Client</title>

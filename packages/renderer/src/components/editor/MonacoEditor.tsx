@@ -12,15 +12,8 @@ interface MonacoEditorProps {
 
 export function MonacoEditor({ value, onChange, language = 'json', height = '400px', theme = 'vs-dark', readOnly = false }: MonacoEditorProps) {
   const editorRef = useRef<ReturnType<OnMount> | null>(null)
-
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.onDidChangeModelContent(() => {
-        const currentValue = editorRef.current.getValue()
-        onChange(currentValue)
-      })
-    }
-  }, [onChange])
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   return (
     <div className="border border-border rounded-lg overflow-hidden h-full w-full monaco-editor-container">
@@ -41,6 +34,12 @@ export function MonacoEditor({ value, onChange, language = 'json', height = '400
         }}
         onMount={(editor) => {
           editorRef.current = editor
+          editor.onDidChangeModelContent(() => {
+            const currentValue = editor.getValue()
+            if (onChangeRef.current) {
+              onChangeRef.current(currentValue)
+            }
+          })
         }}
       />
     </div>

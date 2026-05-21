@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, Menu, MenuItem, nativeImage, type MenuItemConstructorOptions } from 'electron'
+app.name = 'EsCube'
 import path from 'path'
 import fs from 'fs'
 import { StorageService } from './services/StorageService'
@@ -318,9 +319,15 @@ const setupIpcHandlers = () => {
 }
 
 const createWindow = () => {
+  const isMac = process.platform === 'darwin'
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
+    backgroundColor: '#18181a',
+    ...(isMac ? {
+      titleBarStyle: 'hidden',
+      trafficLightPosition: { x: 18, y: 20 },
+    } : {}),
     icon: process.env.NODE_ENV === 'development'
       ? path.join(process.cwd(), 'resources/icon.png')
       : path.join(process.resourcesPath, 'icon.png'),

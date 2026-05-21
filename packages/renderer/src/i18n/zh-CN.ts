@@ -140,6 +140,10 @@ export const zhCN = {
     title: "分片监控",
     description: "实时追踪集群内分片的分布与分配状态",
     filter: "按索引或节点过滤...",
+    view: {
+      matrix: "拓扑矩阵",
+      table: "数据表格",
+    },
     table: {
       index: "索引",
       shard: "分片",

@@ -32,6 +32,7 @@ export interface AppState {
   logConfig: LogConfig
   developerMode: boolean
   isInitialized: boolean
+  isSidebarCollapsed: boolean
 
   init: () => Promise<void>
   setTheme: (theme: Theme) => void
@@ -39,6 +40,7 @@ export interface AppState {
   setAIConfig: (config: Partial<AIConfig>) => void
   setLogConfig: (config: Partial<LogConfig>) => void
   setDeveloperMode: (enabled: boolean) => void
+  setSidebarCollapsed: (collapsed: boolean) => void
   searchHistory: string[]
   addSearchHistory: (query: string) => void
   clearSearchHistory: () => void
@@ -69,6 +71,8 @@ export const useAppStore = create<AppState>()(
       },
       developerMode: false,
       isInitialized: false,
+      isSidebarCollapsed: false,
+      setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
       searchHistory: [],
 
       init: async () => {
@@ -197,6 +201,7 @@ export const useAppStore = create<AppState>()(
         logConfig: state.logConfig,
         developerMode: state.developerMode,
         searchHistory: state.searchHistory,
+        isSidebarCollapsed: state.isSidebarCollapsed,
       }),
     }
   )
